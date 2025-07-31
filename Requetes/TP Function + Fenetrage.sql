@@ -1,4 +1,22 @@
--- Creationd e la fonctioo
+-- Classer les employes en fonction des ventes qu'ils gèrent
+-- Créer une fonction qui s'utilise comme ca :
+-- SELECT * FROM CAByEmploye(5)  !=> 5 = categoryid
+
+-- resultat pour la categorie produit
+-- | empid | Nom | Prenom | Annee | CA  |
+
+-- Données d'efficacite de mes employes 
+
+-- pour chaque employe 
+-- Rank par CA
+-- Pourcentage du CA par rapport au CA Annuel
+-- Difference avec l'employe au rang en dessous pour l'annee
+-- Difference avec lemploye le meilleur pour l'annee
+-- Difference pour un employe de CA par rapport à l'année precedente
+
+
+
+-- Creationd e la fonction Attention aux trous sur les années
 CREATE OR ALTER FUNCTION Sales.CAByEmploye(
 	@CategoryId INT
 ) RETURNS TABLE 
@@ -35,8 +53,12 @@ SELECT * FROM AvecInfosEmployes
 		
 SELECT * FROM Sales.CAByEmploye(5)
 
--- Autre façon d'obtenir les résultats mais en utilisant une sous requete
-DECLARE @categoryid INT =5
+-- Autre façon d'obtenir les résultats mais en utilisant une sous requete et une jointure avec 
+-- produit Annees et des employés
+CREATE OR ALTER FUNCTION Sales.CAByEmploye(
+	@CategoryId INT
+) RETURNS TABLE 
+AS RETURN
 SELECT	Annees.annee, 
 		Annees.complete, 
 		HRE.empid, 
@@ -60,7 +82,15 @@ INNER JOIN Production.Products PP ON PP.productid=SOD.productid
 WHERE YEAR(SO.orderdate)=2006 AND categoryid=3 AND empid=1
 
 
-SELECT * FROM Sales.CAByEmploye(5)
+SELECT 
+	T.*,
+	RANK() OVER(Partition BY annee ORDER BY CA DESC) AS ClassementSurAnnee,
+	CA/ SUM(CA) OVER (Partition BY annee) AS PercentCASurAnnee,
+	CA - LAG(CA) OVER (Partition BY annee ORDER BY CA DESC) AS DifferenceAvecEmployePrecedent,
+	CA - MAX(CA) OVER (Partition BY annee) AS differenceAvecEmployeMeilleur,
+	CA - LAG(CA) OVER (partition BY empid ORDER BY Annee) AS DifferenceAvecAnneePrecedente
+FROM Sales.CAByEmploye(5) T
+ORDER BY Annee,CA DESC
 		
 		
 		
