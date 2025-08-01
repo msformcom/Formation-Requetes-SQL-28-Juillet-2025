@@ -39,9 +39,10 @@ BEGIN
 				WHERE PK_Contact=@pk_contact
 				--Le code s'exécute ici seulement si pas d'erreur
 				PRINT 'Opération commitée'
-				COMMIT
+
 				SELECT * FROM Prospection.contacts
 				WHERE nom LIKE @lettre +'%'
+				COMMIT
 			END TRY
 			BEGIN CATCH
 				-- Annulation
